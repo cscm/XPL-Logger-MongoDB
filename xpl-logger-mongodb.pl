@@ -5,7 +5,6 @@ use xPL::Client;
 use MongoDB;
 use strict;
 use warnings;
-use Data::Dumper;
 
 $|=1; # autoflush helps debugging
 
@@ -30,20 +29,18 @@ $xpl->main_loop();
 sub logger {
 	my %p = @_;
 	my $msg = $p{message};
-	#print Dumper($msg->body_fields());
-	print $msg->interval();
-	exit;
-	#foreach my $f ($msg->body_fields()) {
-	#}
-	
-	return;
-	my $id         = $collection->insert( { 
+	my $data = { 
 		class => $msg->class, 
 		class_type => $msg->class_type, 
 		message_type => $msg->message_type,
 		source => $msg->source,
 		target => $msg->target,
-	} );
+	};
+	foreach my $f ($msg->body_fields()) {
+		$data->{$f} = $msg->$f();
+	}
+	my $id         = $collection->insert($data);
+	return;
 };
 
 # send a "hbeat.end" message on exit
